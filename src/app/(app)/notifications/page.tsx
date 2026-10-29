@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { readNotificationsAction } from "@/app/actions";
+import { readNotificationsAction } from "@/actions/profile";
 import { getDb } from "@/db";
-import { ActionForm, SubmitButton } from "@/components/ActionForm";
-import { cx, EmptyState, PageHeader } from "@/components/ui";
+import { EmptyState, PageHeader } from "@/components/common";
+import { ActionForm } from "@/components/forms/ActionForm";
+import { SubmitButton } from "@/components/forms/SubmitButton";
+import { Card } from "@/components/ui/card";
 import { relativeTime } from "@/lib/time";
-import { requireOnboardedUser } from "@/server/auth";
-import { getNow } from "@/server/core";
-import { listNotifications } from "@/server/queries";
+import { cn } from "@/lib/utils";
+import { requireOnboardedUser } from "@/api/auth";
+import { getNow } from "@/api/core";
+import { listNotifications } from "@/api/queries";
 
 export const metadata = { title: "Notifications" };
 
@@ -43,8 +46,10 @@ export default async function NotificationsPage() {
         subtitle={unread ? `${unread} unread` : "You're all caught up"}
         action={
           unread ? (
-            <ActionForm action={readNotificationsAction} messageClassName="hidden">
-              <SubmitButton className="btn btn-soft btn-sm">Mark all read</SubmitButton>
+            <ActionForm action={readNotificationsAction}>
+              <SubmitButton variant="outline" size="sm">
+                Mark all read
+              </SubmitButton>
             </ActionForm>
           ) : undefined
         }
@@ -52,14 +57,14 @@ export default async function NotificationsPage() {
       {items.length === 0 ? (
         <EmptyState icon="🔔" title="Nothing here yet" />
       ) : (
-        <div className="card divide-y divide-line">
+        <Card className="gap-0 divide-y divide-line py-0">
           {items.map((n) => {
             const body = (
-              <div className={cx("flex gap-3 px-4 py-3.5", !n.readAt && "bg-[#fff8f4]")}>
+              <div className={cn("flex gap-3 px-4 py-3.5", !n.readAt && "bg-[#fff8f4]")}>
                 <span className="text-lg leading-6">{ICONS[n.kind] ?? "•"}</span>
                 <div className="min-w-0 flex-1">
-                  <p className={cx("text-sm", !n.readAt ? "font-semibold" : "font-medium text-ink-2")}>{n.title}</p>
-                  {n.body && <p className="mt-0.5 text-[13px] text-muted">{n.body}</p>}
+                  <p className={cn("text-sm", !n.readAt ? "font-semibold" : "font-medium text-ink-2")}>{n.title}</p>
+                  {n.body && <p className="mt-0.5 text-[13px] text-muted-foreground">{n.body}</p>}
                 </div>
                 <span className="shrink-0 text-[11px] text-faint">{relativeTime(n.createdAt, now)}</span>
                 {!n.readAt && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-coral" />}
@@ -73,7 +78,7 @@ export default async function NotificationsPage() {
               <div key={n.id}>{body}</div>
             );
           })}
-        </div>
+        </Card>
       )}
     </div>
   );

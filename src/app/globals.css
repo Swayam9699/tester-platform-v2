@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -6,7 +10,6 @@
 
   --color-ink: #0f1115;
   --color-ink-2: #3a3e46;
-  --color-muted: #7b8089;
   --color-faint: #a7abb2;
   --color-line: #e8e8eb;
   --color-canvas: #f5f5f6;
@@ -49,131 +52,6 @@ body {
       0 40px 90px -30px rgba(40, 30, 30, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
-
-  .card {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid rgba(15, 17, 21, 0.04);
-    box-shadow: 0 1px 2px rgba(15, 17, 21, 0.04), 0 8px 24px -12px rgba(15, 17, 21, 0.08);
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    height: 2.5rem;
-    padding: 0 1.1rem;
-    border-radius: 999px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
-    cursor: pointer;
-  }
-  .btn:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  .btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-  .btn-dark {
-    color: #fff;
-    background: linear-gradient(180deg, #2b2e35 0%, #0c0d10 100%);
-    box-shadow:
-      0 6px 16px -6px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  }
-  .btn-dark:hover:not(:disabled) {
-    background: linear-gradient(180deg, #363a42 0%, #15171b 100%);
-  }
-  .btn-soft {
-    color: var(--color-ink-2);
-    background: #fff;
-    border: 1px solid var(--color-line);
-  }
-  .btn-soft:hover:not(:disabled) {
-    background: #fafafa;
-    color: var(--color-ink);
-  }
-  .btn-ghost {
-    color: var(--color-ink-2);
-  }
-  .btn-ghost:hover:not(:disabled) {
-    background: rgba(15, 17, 21, 0.05);
-  }
-  .btn-danger {
-    color: var(--color-bad);
-    background: var(--color-bad-soft);
-  }
-  .btn-sm {
-    height: 2rem;
-    padding: 0 0.8rem;
-    font-size: 0.8125rem;
-  }
-
-  .field {
-    width: 100%;
-    height: 2.75rem;
-    padding: 0 0.95rem;
-    border-radius: 12px;
-    background: #fff;
-    border: 1px solid var(--color-line);
-    font-size: 0.875rem;
-    color: var(--color-ink);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  textarea.field {
-    height: auto;
-    padding: 0.7rem 0.95rem;
-    resize: vertical;
-  }
-  .field:focus {
-    border-color: #c9cbd0;
-    box-shadow: 0 0 0 4px rgba(15, 17, 21, 0.05);
-  }
-  .field::placeholder {
-    color: var(--color-faint);
-  }
-  .label {
-    display: block;
-    margin-bottom: 0.4rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--color-ink-2);
-  }
-
-  .check {
-    appearance: none;
-    flex-shrink: 0;
-    width: 1.05rem;
-    height: 1.05rem;
-    border-radius: 5px;
-    border: 1.5px solid #c9cbd0;
-    background: #fff;
-    display: grid;
-    place-content: center;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .check::after {
-    content: "";
-    width: 0.55rem;
-    height: 0.3rem;
-    border-left: 2px solid #fff;
-    border-bottom: 2px solid #fff;
-    transform: rotate(-45deg) translate(1px, -1px);
-    opacity: 0;
-  }
-  .check:checked {
-    background: var(--color-ink);
-    border-color: var(--color-ink);
-  }
-  .check:checked::after {
-    opacity: 1;
-  }
 }
 
 .scroll-thin {
@@ -196,5 +74,116 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sparkle-float {
     animation: none;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+}
+
+:root {
+  /* shadcn/ui tokens, mapped onto the palette in @theme above so its components match the app. */
+  --background: #ffffff;
+  --foreground: #0f1115;
+  --card: #ffffff;
+  --card-foreground: #0f1115;
+  --popover: #ffffff;
+  --popover-foreground: #0f1115;
+  --primary: #0f1115;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f6;
+  --secondary-foreground: #0f1115;
+  --muted: #f5f5f6;
+  --muted-foreground: #7b8089;
+  --accent: #f5f5f6;
+  --accent-foreground: #0f1115;
+  --destructive: #cf4339;
+  --border: #e8e8eb;
+  --input: #e8e8eb;
+  --ring: #c9cbd0;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: #f6f6f7;
+  --sidebar-foreground: #0f1115;
+  --sidebar-primary: #0f1115;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f6;
+  --sidebar-accent-foreground: #0f1115;
+  --sidebar-border: #e8e8eb;
+  --sidebar-ring: #c9cbd0;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 }

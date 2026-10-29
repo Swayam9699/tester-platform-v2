@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getDb } from "@/db";
-import { SideRow } from "@/components/SideRow";
-import { cx, EmptyState, PageHeader } from "@/components/ui";
-import { requireOnboardedUser } from "@/server/auth";
-import { listHandshakeHistory, listMySides } from "@/server/queries";
+import { SideRow } from "@/components/handshakes/SideRow";
+import { EmptyState, PageHeader } from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { requireOnboardedUser } from "@/api/auth";
+import { listHandshakeHistory, listMySides } from "@/api/queries";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Handshakes" };
 
@@ -33,7 +35,7 @@ export default async function HandshakesPage({ searchParams }: { searchParams: P
         } />
       <div className="mb-5 inline-flex rounded-full bg-black/[0.05] p-1">
         {tabs.map((t) => (
-          <Link key={t.href} href={t.href} className={cx("rounded-full px-4 py-1.5 text-sm", t.on ? "bg-white font-medium shadow-sm" : "text-muted hover:text-ink")}>
+          <Link key={t.href} href={t.href} className={cn("rounded-full px-4 py-1.5 text-sm", t.on ? "bg-white font-medium shadow-sm" : "text-muted-foreground hover:text-ink")}>
             {t.label}
           </Link>
         ))}
@@ -44,7 +46,13 @@ export default async function HandshakesPage({ searchParams }: { searchParams: P
           icon={due ? "🎉" : "🤝"}
           title={due ? "All checked in for today" : history ? "No finished handshakes yet" : "No active handshakes"}
           body={due ? "Come back tomorrow." : "Request a handshake from Discover, or accept one under Requests."}
-          action={!due && !history ? <Link href="/discover" className="btn btn-dark">Discover apps</Link> : undefined}
+          action={
+            !due && !history ? (
+              <Button nativeButton={false} render={<Link href="/discover" />}>
+                Discover apps
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="space-y-3">

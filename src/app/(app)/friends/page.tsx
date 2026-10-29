@@ -1,14 +1,17 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
-import { leaveFriendAction } from "@/app/actions";
 import { getDb } from "@/db";
-import { ActionForm, SubmitButton } from "@/components/ActionForm";
-import { InviteLink } from "@/components/InviteCard";
-import { SideRow } from "@/components/SideRow";
-import { AppLogo, Avatar, cx, EmptyState, PageHeader, Progress, SectionTitle, SlotBar, Stat, StatusBadge } from "@/components/ui";
-import { requireOnboardedUser } from "@/server/auth";
-import { getOrigin } from "@/server/origin";
-import { getFriendTesting, type FriendTester } from "@/server/queries";
+import { AppLogo, EmptyState, PageHeader, SlotBar, Stat, StatusBadge } from "@/components/common";
+import { InviteLink } from "@/components/handshakes/InviteLink";
+import { SideRow } from "@/components/handshakes/SideRow";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { requireOnboardedUser } from "@/api/auth";
+import { getOrigin } from "@/api/origin";
+import { getFriendTesting } from "@/api/queries";
+import { FriendRow } from "@/components/friends/FriendRow";
+import { FriendHistory } from "@/components/friends/FriendHistory";
 
 export const metadata = { title: "Friend testing" };
 
@@ -41,10 +44,10 @@ export default async function FriendsPage({ searchParams }: { searchParams: Prom
           <Link
             key={t.key}
             href={t.key === "apps" ? "/friends" : `/friends?tab=${t.key}`}
-            className={cx("whitespace-nowrap rounded-full px-4 py-1.5 text-sm", tab === t.key ? "bg-white font-medium shadow-sm" : "text-muted hover:text-ink")}
+            className={cn("whitespace-nowrap rounded-full px-4 py-1.5 text-sm", tab === t.key ? "bg-white font-medium shadow-sm" : "text-muted-foreground hover:text-ink")}
           >
             {t.label}
-            {t.count ? <span className="ml-1.5 text-xs text-muted">{t.count}</span> : null}
+            {t.count ? <span className="ml-1.5 text-xs text-muted-foreground">{t.count}</span> : null}
           </Link>
         ))}
       </div>
@@ -64,11 +67,11 @@ export default async function FriendsPage({ searchParams }: { searchParams: Prom
           />
         )
       ) : tab === "history" ? (
-        <History d={d} />
+        <FriendHistory d={d} />
       ) : d.apps.length ? (
         <div className="space-y-4">
           {d.apps.map(({ app, slots, friends }) => (
-            <section key={app.id} className="card p-5">
+            <Card key={app.id} className="block p-5">
               <div className="flex items-center gap-3">
                 <AppLogo name={app.name} src={app.logoUrl} size={44} />
                 <div className="min-w-0 flex-1">
@@ -78,7 +81,7 @@ export default async function FriendsPage({ searchParams }: { searchParams: Prom
                     </Link>
                     <StatusBadge status={app.status} />
                   </div>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-muted-foreground">
                     {slots.used}/{app.testerSlots} testers · {friends.length} friend{friends.length === 1 ? "" : "s"}
                   </p>
                 </div>
@@ -98,9 +101,9 @@ export default async function FriendsPage({ searchParams }: { searchParams: Prom
                   ))}
                 </ul>
               ) : (
-                <p className="mt-4 border-t border-line pt-4 text-sm text-muted">No friends testing yet. Send them the link above.</p>
+                <p className="mt-4 border-t border-line pt-4 text-sm text-muted-foreground">No friends testing yet. Send them the link above.</p>
               )}
-            </section>
+            </Card>
           ))}
         </div>
       ) : (
@@ -109,87 +112,12 @@ export default async function FriendsPage({ searchParams }: { searchParams: Prom
           title="Publish an app to invite friends"
           body="Every app open for testers gets its own invite link. Friends who join fill tester slots without you testing anything back."
           action={
-            <Link href="/apps/new" className="btn btn-dark">
+            <Button nativeButton={false} render={<Link href="/apps/new" />}>
               Submit an app
-            </Link>
+            </Button>
           }
         />
       )}
     </div>
-  );
-}
-
-function FriendRow({ f, now }: { f: FriendTester; now: Date }) {
-  const hoursLeft = f.deadlineAt ? Math.max(0, Math.round((f.deadlineAt.getTime() - now.getTime()) / 3_600_000)) : null;
-  return (
-    <li className="flex flex-wrap items-center gap-3 py-3 text-sm sm:flex-nowrap">
-      <Avatar name={f.tester.name} src={f.tester.avatarUrl} size={32} ring={false} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{f.tester.name}</p>
-        <p className="text-xs text-muted">
-          {f.sideStatus === "pending"
-            ? `Needs to opt in on Google Play${hoursLeft != null ? ` · ${hoursLeft}h left` : ""}`
-            : `${f.checkinCount} check-in${f.checkinCount === 1 ? "" : "s"}${f.checkedToday ? " · opened today ✓" : ""}`}
-        </p>
-      </div>
-      {f.sideStatus === "active" && (
-        <div className="w-full sm:w-36">
-          <div className="mb-1 flex justify-between text-xs text-muted">
-            <span>
-              Day {f.day}/{f.totalDays}
-            </span>
-            <span>{f.totalDays - f.day}d left</span>
-          </div>
-          <Progress value={f.day} max={f.totalDays} />
-        </div>
-      )}
-      <StatusBadge status={f.sideStatus} />
-      <ActionForm action={leaveFriendAction} messageClassName="hidden">
-        <input type="hidden" name="handshakeId" value={f.handshakeId} />
-        <SubmitButton className="btn btn-ghost btn-sm text-muted" pendingText="…" title={`Remove ${f.tester.name} and free the slot`}>
-          Remove
-        </SubmitButton>
-      </ActionForm>
-    </li>
-  );
-}
-
-function History({ d }: { d: Awaited<ReturnType<typeof getFriendTesting>> }) {
-  if (!d.tested.length && !d.pastFriends.length) {
-    return <EmptyState icon="🌱" title="No finished friend tests yet" body="Friend tests that complete or end early show up here." />;
-  }
-  return (
-    <>
-      {d.pastFriends.length > 0 && (
-        <>
-          <SectionTitle>Friends who tested your apps</SectionTitle>
-          <div className="card divide-y divide-line">
-            {d.pastFriends.map((f) => (
-              <div key={f.handshakeId} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <Avatar name={f.tester.name} src={f.tester.avatarUrl} size={32} ring={false} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{f.tester.name}</p>
-                  <p className="truncate text-xs text-muted">
-                    {f.appName} · {f.checkinCount} check-in{f.checkinCount === 1 ? "" : "s"}
-                    {f.endedReason ? ` · ${f.endedReason}` : ""}
-                  </p>
-                </div>
-                <StatusBadge status={f.hsStatus} />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      {d.tested.length > 0 && (
-        <>
-          <SectionTitle>Apps you tested for friends</SectionTitle>
-          <div className="space-y-3">
-            {d.tested.map((s) => (
-              <SideRow key={s.sideId} s={s} />
-            ))}
-          </div>
-        </>
-      )}
-    </>
   );
 }

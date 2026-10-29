@@ -1,10 +1,14 @@
-import { ArrowLeftRight, Clock } from "lucide-react";
-import { respondAction } from "@/app/actions";
+import { Clock } from "lucide-react";
+import { respondAction } from "@/actions/handshakes";
 import { getDb } from "@/db";
-import { ActionForm, SubmitButton } from "@/components/ActionForm";
-import { AppLogo, Avatar, EmptyState, PageHeader, SectionTitle, StatusBadge } from "@/components/ui";
-import { requireOnboardedUser } from "@/server/auth";
-import { getRequests } from "@/server/queries";
+import { EmptyState, PageHeader, SectionTitle, StatusBadge, UserAvatar } from "@/components/common";
+import { ActionForm } from "@/components/forms/ActionForm";
+import { SubmitButton } from "@/components/forms/SubmitButton";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { requireOnboardedUser } from "@/api/auth";
+import { getRequests } from "@/api/queries";
+import { Swap } from "@/components/requests/Swap";
 
 export const metadata = { title: "Requests" };
 
@@ -31,14 +35,14 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
       ) : (
         <div className="space-y-3">
           {incoming.map((r) => (
-            <div key={r.hs.id} className="card p-5">
+            <Card key={r.hs.id} className="block p-5">
               <div className="flex flex-wrap items-center gap-3">
-                <Avatar name={r.userA.name} src={r.userA.avatarUrl} size={36} ring={false} />
+                <UserAvatar name={r.userA.name} src={r.userA.avatarUrl} size={36} ring={false} />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm">
                     <b>{r.userA.name}</b> wants to test <b>{r.appB.name}</b>
                   </p>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-muted-foreground">
                     Reliability {r.userA.reliabilityScore} · {r.userA.completedHandshakes} completed · Level {r.userA.level}
                   </p>
                 </div>
@@ -49,37 +53,37 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
               <Swap you={r.appB} them={r.appA} youLabel="They test" themLabel="You test" />
               {r.hs.message && <p className="mt-3 rounded-xl bg-canvas px-3 py-2 text-sm text-ink-2">“{r.hs.message}”</p>}
               <ActionForm action={respondAction} className="mt-4 flex flex-wrap items-center justify-end gap-2">
-                <input type="hidden" name="handshakeId" value={r.hs.id} />
-                <SubmitButton name="action" value="reject" className="btn btn-ghost btn-sm">
+                <Input type="hidden" name="handshakeId" value={r.hs.id} />
+                <SubmitButton name="action" value="reject" variant="ghost" size="sm">
                   Decline
                 </SubmitButton>
-                <SubmitButton name="action" value="accept" className="btn btn-dark btn-sm" pendingText="Accepting…">
+                <SubmitButton name="action" value="accept" size="sm" pendingText="Accepting…">
                   Accept handshake
                 </SubmitButton>
               </ActionForm>
-            </div>
+            </Card>
           ))}
         </div>
       )}
 
       <SectionTitle>Outgoing ({outgoing.length})</SectionTitle>
       {outgoing.length === 0 ? (
-        <p className="text-sm text-muted">No pending requests. Find apps in Discover.</p>
+        <p className="text-sm text-muted-foreground">No pending requests. Find apps in Discover.</p>
       ) : (
         <div className="space-y-3">
           {outgoing.map((r) => (
-            <div key={r.hs.id} className="card flex flex-wrap items-center gap-4 p-4">
+            <Card key={r.hs.id} className="flex-row flex-wrap items-center gap-4 p-4">
               <Swap you={r.appA} them={r.appB} youLabel="They test" themLabel="You test" compact />
-              <div className="flex-1 text-xs text-muted">
+              <div className="flex-1 text-xs text-muted-foreground">
                 Waiting for <b className="text-ink-2">{r.userB.name}</b> · {hoursLeft(r)}h left
               </div>
-              <ActionForm action={respondAction} className="flex items-center" messageClassName="ml-2">
-                <input type="hidden" name="handshakeId" value={r.hs.id} />
-                <SubmitButton name="action" value="cancel" className="btn btn-soft btn-sm">
+              <ActionForm action={respondAction} className="flex items-center">
+                <Input type="hidden" name="handshakeId" value={r.hs.id} />
+                <SubmitButton name="action" value="cancel" variant="outline" size="sm">
                   Withdraw
                 </SubmitButton>
               </ActionForm>
-            </div>
+            </Card>
           ))}
         </div>
       )}
@@ -87,53 +91,19 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
       {history.length > 0 && (
         <>
           <SectionTitle>Recently closed</SectionTitle>
-          <div className="card divide-y divide-line">
+          <Card className="gap-0 divide-y divide-line py-0">
             {history.map((r) => (
               <div key={r.hs.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                 <span className="flex-1 truncate text-ink-2">
                   {r.userA.id === user.id ? `You → ${r.userB.name}` : `${r.userA.name} → you`} · {r.appB.name}
                 </span>
-                <span className="hidden text-xs text-muted sm:inline">{r.hs.endedReason}</span>
+                <span className="hidden text-xs text-muted-foreground sm:inline">{r.hs.endedReason}</span>
                 <StatusBadge status={r.hs.status} />
               </div>
             ))}
-          </div>
+          </Card>
         </>
       )}
-    </div>
-  );
-}
-
-function Swap({
-  you,
-  them,
-  youLabel,
-  themLabel,
-  compact,
-}: {
-  you: { name: string; logoUrl: string | null };
-  them: { name: string; logoUrl: string | null };
-  youLabel: string;
-  themLabel: string;
-  compact?: boolean;
-}) {
-  return (
-    <div className={compact ? "flex items-center gap-3" : "mt-4 flex items-center gap-3 rounded-2xl bg-canvas p-3"}>
-      <AppSlot label={themLabel} app={them} />
-      <ArrowLeftRight size={16} className="shrink-0 text-muted" />
-      <AppSlot label={youLabel} app={you} />
-    </div>
-  );
-}
-
-function AppSlot({ label, app }: { label: string; app: { name: string; logoUrl: string | null } }) {
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <AppLogo name={app.name} src={app.logoUrl} size={32} />
-      <div className="min-w-0">
-        <p className="text-[10.5px] uppercase tracking-wide text-muted">{label}</p>
-        <p className="truncate text-sm font-medium">{app.name}</p>
-      </div>
     </div>
   );
 }

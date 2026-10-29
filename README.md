@@ -1,7 +1,7 @@
 # Tester: closed testing by handshake
 
 A web app where Android developers swap closed testing 1:1 ("I test your app, you test mine") to meet Google Play's
-**12 testers × 14 days** requirement. Built from [Testerplatform.prd](Testerplatform.prd).
+**12 testers × 14 days** requirement. Built from [Testerplatform.prd](docs/Testerplatform.prd).
 
 **Stack:** Next.js 16 (App Router, Server Actions) · Tailwind CSS 4 · Drizzle ORM · Postgres (Supabase in production,
 embedded PGlite locally) · Supabase Auth (Google) + Storage · deployed on Vercel.
@@ -36,10 +36,10 @@ Both have free plans; Vercel's free Hobby plan is for non-commercial use.
 
 1. **Create a Supabase project.**
 2. **Database.** In Vercel, open the project's **Storage** tab (or Integrations) and connect your Supabase project.
-   That sets `POSTGRES_URL` and friends automatically, and every deploy runs [scripts/migrate.mjs](scripts/migrate.mjs)
+   That sets `POSTGRES_URL` and friends automatically, and every deploy runs `npm run drizzle:migrate` (drizzle-kit, configured in [drizzle.config.ts](drizzle.config.ts))
    before building, which creates and updates the tables (including the levels and Row Level Security, so
    Supabase's public REST API can't read the data). No connection strings to copy. Outside Vercel, set
-   `DATABASE_URL` to the *Transaction pooler* string instead; `npm run db:migrate` also applies migrations by hand.
+   `DATABASE_URL` to the *Transaction pooler* string instead; `npm run drizzle:migrate` also applies migrations by hand.
 3. **Google Sign-In.**
    1. In Google Cloud, create an OAuth client with redirect URI `https://<project>.supabase.co/auth/v1/callback`.
    2. In Supabase, open Auth → Providers → Google and paste the client ID and secret.
@@ -85,15 +85,15 @@ for the cron trigger). Set the Cloudflare build command to `npm run build:cf`, a
 |---|---|
 | Database structure (users, apps, handshakes, handshake_sides, daily_checkins, feedback, levels, blocks) | [src/db/schema.ts](src/db/schema.ts) (plus notifications, disputes, settings) |
 | Levels 1–5 (12 → 20 slots) | `LEVELS` in [src/lib/config.ts](src/lib/config.ts), seeded into `levels` |
-| Slot check before request/accept | `assertFreeSlot` in [src/server/core.ts](src/server/core.ts) |
-| Discover filter + sort (owner ≠ me, open, min Android ≤ my device, no existing handshake, owner not blocked; priority → reliability → fewest testers) | `getDiscover` in [src/server/queries.ts](src/server/queries.ts) |
-| Request rules (offered app open, not tested by target before, runs on their device) | `requestHandshake` in [src/server/handshakes.ts](src/server/handshakes.ts) |
+| Slot check before request/accept | `assertFreeSlot` in [src/api/core.ts](src/api/core.ts) |
+| Discover filter + sort (owner ≠ me, open, min Android ≤ my device, no existing handshake, owner not blocked; priority → reliability → fewest testers) | `getDiscover` in [src/api/queries.ts](src/api/queries.ts) |
+| Request rules (offered app open, not tested by target before, runs on their device) | `requestHandshake` in [src/api/handshakes.ts](src/api/handshakes.ts) |
 | Accept in one transaction (both users' slots + both apps' tester slots, row locks) | `acceptHandshake` |
 | Opt-in screenshot within 48h, 16-day clock starts when both joined | `submitOptinProof` |
 | Daily "opened today" check-in | `checkIn` |
-| Daily cron: expire requests after 48h, missed opt-ins, missed_streak (warn at 2, skip at 3), block + reliability penalty, partner keeps credit + app priority, completion + level-up | [src/server/cron.ts](src/server/cron.ts), `breakHandshake`, `penalize`, `rewardCompletion` |
+| Daily cron: expire requests after 48h, missed opt-ins, missed_streak (warn at 2, skip at 3), block + reliability penalty, partner keeps credit + app priority, completion + level-up | [src/api/cron.ts](src/api/cron.ts), `breakHandshake`, `penalize`, `rewardCompletion` |
 | 4-step submission checklist, link regex + package extraction, logo preview, min Android dropdown | [src/components/AppForm.tsx](src/components/AppForm.tsx), [src/lib/playLinks.ts](src/lib/playLinks.ts) |
 | Screens: Landing, Login, Onboarding, Dashboard, My Apps, Discover, Requests, Active Handshakes, Profile, Admin | [src/app/](src/app/) |
-| Friend testing (beyond the PRD): owners share `/invite/<code>`; friends test one-way, with no app in return, no slots, no penalties and no level credit | `joinAsFriend`, `leaveFriendTest` in [src/server/handshakes.ts](src/server/handshakes.ts), [src/app/invite/[code]/page.tsx](src/app/invite/[code]/page.tsx) |
+| Friend testing (beyond the PRD): owners share `/invite/<code>`; friends test one-way, with no app in return, no slots, no penalties and no level credit | `joinAsFriend`, `leaveFriendTest` in [src/api/handshakes.ts](src/api/handshakes.ts), [src/app/invite/[code]/page.tsx](src/app/invite/[code]/page.tsx) |
 
 Penalty values (block days, reliability changes, deadlines) are in `RULES` in [src/lib/config.ts](src/lib/config.ts).

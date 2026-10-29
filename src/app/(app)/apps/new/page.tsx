@@ -1,7 +1,7 @@
-import { AppForm } from "@/components/AppForm";
-import { PageHeader } from "@/components/ui";
+import { AppForm } from "@/components/forms/AppForm";
+import { PageHeader } from "@/components/common";
 import { googleGroup } from "@/lib/config";
-import { requireOnboardedUser } from "@/server/auth";
+import { requireOnboardedUser } from "@/api/auth";
 
 export const metadata = { title: "Submit app" };
 

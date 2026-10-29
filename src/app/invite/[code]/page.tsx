@@ -1,13 +1,19 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
-import { joinFriendAction } from "@/app/actions";
+import { joinFriendAction } from "@/actions/handshakes";
 import { getDb } from "@/db";
-import { ActionForm, SubmitButton } from "@/components/ActionForm";
-import { AppLogo, Avatar, LogoMark, SlotBar } from "@/components/ui";
+import { ActionForm } from "@/components/forms/ActionForm";
+import { SubmitButton } from "@/components/forms/SubmitButton";
+import { AppLogo, SlotBar, UserAvatar } from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { androidLabel } from "@/lib/android";
 import { APP_NAME, RULES } from "@/lib/config";
-import { getSessionUser, isOnboarded } from "@/server/auth";
-import { getInvite } from "@/server/queries";
+import { getSessionUser, isOnboarded } from "@/api/auth";
+import { getInvite } from "@/api/queries";
+import { InviteShell } from "@/components/invite/InviteShell";
+import { InviteNote } from "@/components/invite/InviteNote";
 
 export const metadata = { title: "You're invited to test" };
 
@@ -19,13 +25,13 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
 
   if (!invite) {
     return (
-      <Shell>
+      <InviteShell>
         <h1 className="text-center text-2xl font-semibold tracking-tight">This invite link doesn&apos;t work</h1>
-        <p className="mt-2 text-center text-sm text-muted">The developer may have created a new link. Ask them to send it again.</p>
-        <Link href="/" className="btn btn-soft mt-6 w-full">
+        <p className="mt-2 text-center text-sm text-muted-foreground">The developer may have created a new link. Ask them to send it again.</p>
+        <Button variant="outline" className="mt-6 w-full" nativeButton={false} render={<Link href="/" />}>
           About {APP_NAME}
-        </Link>
-      </Shell>
+        </Button>
+      </InviteShell>
     );
   }
 
@@ -37,40 +43,40 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   let action: React.ReactNode;
   if (isOwner) {
     action = (
-      <Note>
+      <InviteNote>
         This is your own invite link. Send it to friends; each one who joins fills a tester slot.{" "}
         <Link href={`/apps/${app.id}`} className="font-medium text-ink underline">
           Back to {app.name}
         </Link>
-      </Note>
+      </InviteNote>
     );
   } else if (existingHandshakeId) {
     action = (
-      <Link href={`/handshakes/${existingHandshakeId}`} className="btn btn-dark h-12 w-full">
+      <Button size="lg" className="w-full" nativeButton={false} render={<Link href={`/handshakes/${existingHandshakeId}`} />}>
         You&apos;re already testing {app.name} →
-      </Link>
+      </Button>
     );
   } else if (app.status !== "open") {
-    action = <Note>{app.name} isn&apos;t taking new testers right now{app.status === "full" ? ": all slots are filled" : ""}.</Note>;
+    action = <InviteNote>{app.name} isn&apos;t taking new testers right now{app.status === "full" ? ": all slots are filled" : ""}.</InviteNote>;
   } else if (!user) {
     action = (
-      <Link href={`/login?next=${encodeURIComponent(here)}`} className="btn btn-dark h-12 w-full">
+      <Button size="lg" className="w-full" nativeButton={false} render={<Link href={`/login?next=${encodeURIComponent(here)}`} />}>
         Sign in to accept
-      </Link>
+      </Button>
     );
   } else if (!isOnboarded(user)) {
     action = (
-      <Link href={`/onboarding?next=${encodeURIComponent(here)}`} className="btn btn-dark h-12 w-full">
+      <Button size="lg" className="w-full" nativeButton={false} render={<Link href={`/onboarding?next=${encodeURIComponent(here)}`} />}>
         Finish a 1-minute setup to accept
-      </Link>
+      </Button>
     );
   } else if (tooOld) {
-    action = <Note>Your phone runs an older Android version than {app.name} needs ({androidLabel(app.minAndroidApi)}+).</Note>;
+    action = <InviteNote>Your phone runs an older Android version than {app.name} needs ({androidLabel(app.minAndroidApi)}+).</InviteNote>;
   } else {
     action = (
       <ActionForm action={joinFriendAction}>
-        <input type="hidden" name="code" value={code} />
-        <SubmitButton className="btn btn-dark h-12 w-full" pendingText="Joining…">
+        <Input type="hidden" name="code" value={code} />
+        <SubmitButton size="lg" className="w-full" pendingText="Joining…">
           <Heart size={16} /> Test {app.name} for {first}
         </SubmitButton>
       </ActionForm>
@@ -78,25 +84,25 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   }
 
   return (
-    <Shell>
+    <InviteShell>
       <div className="flex items-center gap-3">
-        <Avatar name={owner.name} src={owner.avatarUrl} size={36} ring={false} />
+        <UserAvatar name={owner.name} src={owner.avatarUrl} size={36} ring={false} />
         <p className="text-sm text-ink-2">
           <b className="text-ink">{owner.name}</b> invited you to test their app
         </p>
       </div>
 
-      <div className="card mt-5 flex items-center gap-4 p-4">
+      <Card className="mt-5 flex-row items-center gap-4 p-4">
         <AppLogo name={app.name} src={app.logoUrl} size={56} />
         <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">{app.name}</h1>
-          {app.description && <p className="text-sm text-muted">{app.description}</p>}
+          {app.description && <p className="text-sm text-muted-foreground">{app.description}</p>}
           <p className="mt-1 text-xs text-faint">{androidLabel(app.minAndroidApi)}+</p>
         </div>
-      </div>
+      </Card>
 
       <div className="mt-5">
-        <div className="mb-1.5 flex justify-between text-xs text-muted">
+        <div className="mb-1.5 flex justify-between text-xs text-muted-foreground">
           <span>Testers</span>
           <span>
             {slots.used}/{app.testerSlots}
@@ -124,24 +130,6 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       </div>
 
       <div className="mt-6">{action}</div>
-    </Shell>
+    </InviteShell>
   );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid min-h-dvh place-items-center p-4">
-      <div className="glass-shell w-full max-w-[460px] rounded-[28px] p-6 sm:p-8">
-        <Link href="/" className="mb-6 flex items-center gap-2">
-          <LogoMark />
-          <span className="font-semibold">{APP_NAME.toUpperCase()}</span>
-        </Link>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Note({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-2xl bg-canvas px-4 py-3 text-sm text-ink-2">{children}</p>;
 }

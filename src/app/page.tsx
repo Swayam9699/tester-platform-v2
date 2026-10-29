@@ -1,9 +1,13 @@
 import { ArrowRight, CalendarCheck, Handshake, ShieldCheck, Smartphone, Upload, Users } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogoMark, Sparkle } from "@/components/ui";
+import { LogoMark, Sparkle } from "@/components/common";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APP_NAME, LEVELS, RULES } from "@/lib/config";
-import { getSessionUser } from "@/server/auth";
+import { getSessionUser } from "@/api/auth";
 
 export default async function Landing() {
   if (await getSessionUser()) redirect("/dashboard");
@@ -36,13 +40,19 @@ export default async function Landing() {
             <span className="text-[17px] font-semibold tracking-tight">{APP_NAME.toUpperCase()}</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-ink-2 md:flex">
-            <a href="#how" className="hover:text-ink">How it works</a>
-            <a href="#rules" className="hover:text-ink">Rules</a>
-            <a href="#faq" className="hover:text-ink">FAQ</a>
+            {[
+              ["#how", "How it works"],
+              ["#rules", "Rules"],
+              ["#faq", "FAQ"],
+            ].map(([href, label]) => (
+              <Button key={href} variant="link" className="text-sm hover:no-underline" nativeButton={false} render={<a href={href} />}>
+                {label}
+              </Button>
+            ))}
           </nav>
-          <Link href="/login" className="btn btn-dark btn-sm">
+          <Button size="sm" nativeButton={false} render={<Link href="/login" />}>
             Sign in
-          </Link>
+          </Button>
         </header>
 
         <section className="flex flex-col items-center px-5 pb-20 pt-12 text-center sm:px-10">
@@ -53,16 +63,16 @@ export default async function Landing() {
             <br />
             <span className="bg-gradient-to-r from-[#ef7b5b] via-[#e08aa0] to-[#a78bdb] bg-clip-text text-transparent">You test theirs, they test yours.</span>
           </h1>
-          <p className="mt-5 max-w-xl text-[15px] text-muted">
+          <p className="mt-5 max-w-xl text-[15px] text-muted-foreground">
             Swap closed testing one-to-one with other Android developers until you meet Google Play&apos;s production requirement, with daily check-ins that keep everyone honest.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/login" className="btn btn-dark h-12 px-6 text-[15px]">
+            <Button size="lg" className="text-[15px]" nativeButton={false} render={<Link href="/login" />}>
               Get started free <ArrowRight size={16} />
-            </Link>
-            <a href="#how" className="btn btn-soft h-12 px-6 text-[15px]">
+            </Button>
+            <Button variant="outline" size="lg" className="text-[15px]" nativeButton={false} render={<a href="#how" />}>
               How it works
-            </a>
+            </Button>
           </div>
           <div className="mt-12 grid w-full max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
             {[
@@ -71,10 +81,10 @@ export default async function Landing() {
               ["1 : 1", "fair handshakes"],
               ["48 h", "to accept & opt in"],
             ].map(([v, l]) => (
-              <div key={l} className="card p-4">
+              <Card key={l} className="gap-0 p-4">
                 <p className="text-2xl font-semibold tracking-tight">{v}</p>
-                <p className="text-xs text-muted">{l}</p>
-              </div>
+                <p className="text-xs text-muted-foreground">{l}</p>
+              </Card>
             ))}
           </div>
         </section>
@@ -83,7 +93,7 @@ export default async function Landing() {
           <h2 className="text-center text-3xl font-semibold tracking-tight">How it works</h2>
           <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-4">
             {steps.map((s, i) => (
-              <div key={s.title} className="card p-5">
+              <Card key={s.title} className="block p-5">
                 <div className="flex items-center justify-between">
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#fde8de] text-coral">
                     <s.icon size={18} />
@@ -91,8 +101,8 @@ export default async function Landing() {
                   <span className="text-xs font-medium text-faint">0{i + 1}</span>
                 </div>
                 <p className="mt-5 font-semibold">{s.title}</p>
-                <p className="mt-1 text-sm text-muted">{s.body}</p>
-              </div>
+                <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
+              </Card>
             ))}
           </div>
         </section>
@@ -116,54 +126,51 @@ export default async function Landing() {
                 </li>
               </ul>
             </div>
-            <div className="card overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-canvas text-left text-xs text-muted">
-                  <tr>
-                    <th className="px-5 py-3 font-medium">Level</th>
-                    <th className="px-5 py-3 font-medium">Active handshakes</th>
-                    <th className="px-5 py-3 font-medium">Completions needed</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
+            <Card className="block py-0">
+              <Table>
+                <TableHeader className="bg-canvas">
+                  <TableRow>
+                    <TableHead className="px-5 text-xs text-muted-foreground">Level</TableHead>
+                    <TableHead className="px-5 text-xs text-muted-foreground">Active handshakes</TableHead>
+                    <TableHead className="px-5 text-xs text-muted-foreground">Completions needed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {LEVELS.map((l) => (
-                    <tr key={l.level}>
-                      <td className="px-5 py-3 font-medium">{l.level}</td>
-                      <td className="px-5 py-3">{l.activeSlots}</td>
-                      <td className="px-5 py-3">{l.completionsRequired}</td>
-                    </tr>
+                    <TableRow key={l.level}>
+                      <TableCell className="px-5 py-3 font-medium">{l.level}</TableCell>
+                      <TableCell className="px-5 py-3">{l.activeSlots}</TableCell>
+                      <TableCell className="px-5 py-3">{l.completionsRequired}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TableBody>
+              </Table>
+            </Card>
           </div>
         </section>
 
         <section id="faq" className="border-t border-black/5 bg-white/50 px-5 py-16 sm:px-10">
           <h2 className="text-center text-3xl font-semibold tracking-tight">Questions</h2>
-          <div className="mx-auto mt-8 max-w-2xl space-y-3">
+          <Accordion multiple className="mx-auto mt-8 max-w-2xl space-y-3">
             {faqs.map((f) => (
-              <details key={f.q} className="card group p-5">
-                <summary className="cursor-pointer list-none font-medium">
-                  <span className="flex items-center justify-between">
-                    {f.q}
-                    <span className="text-muted transition-transform group-open:rotate-45">+</span>
-                  </span>
-                </summary>
-                <p className="mt-3 text-sm text-muted">{f.a}</p>
-              </details>
+              <Card key={f.q} className="block p-0">
+                <AccordionItem value={f.q} className="border-0">
+                  <AccordionTrigger className="px-5 py-5 text-base font-medium hover:no-underline">{f.q}</AccordionTrigger>
+                  <AccordionContent className="px-5 text-sm text-muted-foreground">{f.a}</AccordionContent>
+                </AccordionItem>
+              </Card>
             ))}
-          </div>
+          </Accordion>
         </section>
 
         <section className="px-5 py-16 text-center sm:px-10">
           <h2 className="text-3xl font-semibold tracking-tight">Ready to ship to production?</h2>
-          <Link href="/login" className="btn btn-dark mt-6 h-12 px-6 text-[15px]">
+          <Button size="lg" className="mt-6 text-[15px]" nativeButton={false} render={<Link href="/login" />}>
             Sign in with Google <ArrowRight size={16} />
-          </Link>
+          </Button>
         </section>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-black/5 px-5 py-6 text-xs text-muted sm:px-10">
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-black/5 px-5 py-6 text-xs text-muted-foreground sm:px-10">
           <span>© {new Date().getFullYear()} {APP_NAME}</span>
           <span>Not affiliated with Google. Google Play is a trademark of Google LLC.</span>
         </footer>
