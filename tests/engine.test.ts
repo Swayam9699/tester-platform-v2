@@ -6,9 +6,9 @@ import { before, describe, test } from "node:test";
 import { and, eq } from "drizzle-orm";
 import { getDb, type Db } from "@/db";
 import { apps, handshakeSides, handshakes, users } from "@/db/schema";
-import { saveApp } from "@/server/apps";
-import { activeHandshakeCount, getSetting, setSetting, usedTesterSlots } from "@/server/core";
-import { runDailyJob } from "@/server/cron";
+import { saveApp } from "@/api/apps";
+import { activeHandshakeCount, getSetting, setSetting, usedTesterSlots } from "@/api/core";
+import { runDailyJob } from "@/api/cron";
 import {
   acceptHandshake,
   checkIn,
@@ -17,10 +17,10 @@ import {
   requestHandshake,
   resetInviteCode,
   submitOptinProof,
-} from "@/server/handshakes";
-import { isOnboarded } from "@/server/auth";
-import { listMySides } from "@/server/queries";
-import { completeOnboarding, upsertUserByEmail } from "@/server/users";
+} from "@/api/handshakes";
+import { isOnboarded } from "@/api/auth";
+import { listMySides } from "@/api/queries";
+import { completeOnboarding, upsertUserByEmail } from "@/api/users";
 
 let db: Db;
 let seq = 0;

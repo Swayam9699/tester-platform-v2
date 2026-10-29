@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import { getDb } from "@/db";
-import { AppForm } from "@/components/AppForm";
-import { PageHeader } from "@/components/ui";
+import { AppForm } from "@/components/forms/AppForm";
+import { PageHeader } from "@/components/common";
 import { googleGroup } from "@/lib/config";
-import { requireOnboardedUser } from "@/server/auth";
-import { getAppDetail } from "@/server/queries";
+import { requireOnboardedUser } from "@/api/auth";
+import { getAppDetail } from "@/api/queries";
 
 export const metadata = { title: "Edit app" };
 

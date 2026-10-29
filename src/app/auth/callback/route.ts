@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase";
-import { NEXT_COOKIE, safeNext } from "@/server/auth";
+import { NEXT_COOKIE, safeNext } from "@/api/auth";
 
 /** Google OAuth lands here; exchange the code for a session cookie. */
 export async function GET(request: NextRequest) {

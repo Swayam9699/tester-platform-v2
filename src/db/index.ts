@@ -10,7 +10,7 @@ export type Db = PostgresJsDatabase<typeof schema>;
 export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 export type DbOrTx = Db | Tx;
 
-const MIGRATIONS = path.join(process.cwd(), "drizzle");
+const MIGRATIONS = path.join(process.cwd(), "src", "drizzle");
 
 /** True inside Cloudflare Workers (the production host), false under Node (`next dev` / `next start` / tests). */
 const onWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";

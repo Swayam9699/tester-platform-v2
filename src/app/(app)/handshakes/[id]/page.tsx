@@ -1,14 +1,29 @@
-import { ArrowLeftRight, ExternalLink, Smartphone, Star } from "lucide-react";
+import { ArrowLeftRight, ExternalLink, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { checkInAction, feedbackAction, leaveFriendAction, optinProofAction, reportAction } from "@/app/actions";
+import { leaveFriendAction } from "@/actions/handshakes";
 import { getDb } from "@/db";
-import { ActionForm, SubmitButton } from "@/components/ActionForm";
-import { AppLogo, Avatar, Badge, cx, Progress, SectionTitle, StatusBadge } from "@/components/ui";
+import { SectionTitle, StatusBadge, UserAvatar } from "@/components/common";
+import { ActionForm } from "@/components/forms/ActionForm";
+import { SubmitButton } from "@/components/forms/SubmitButton";
+import { CheckInForm } from "@/components/handshakes/CheckInForm";
+import { FeedbackForm } from "@/components/handshakes/FeedbackForm";
+import { OptinProofForm } from "@/components/handshakes/OptinProofForm";
+import { ReportProblemForm } from "@/components/handshakes/ReportProblemForm";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 import { RULES } from "@/lib/config";
 import { addDays, dayKey, daysBetween } from "@/lib/time";
-import { requireOnboardedUser } from "@/server/auth";
-import { getHandshakeDetail } from "@/server/queries";
+import { cn, percent } from "@/lib/utils";
+import { requireOnboardedUser } from "@/api/auth";
+import { getHandshakeDetail } from "@/api/queries";
+import { AppSide } from "@/components/handshakes/AppSide";
+import { DetailRow } from "@/components/handshakes/DetailRow";
+import { Stars } from "@/components/handshakes/Stars";
 
 export default async function HandshakePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,38 +54,38 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
 
   return (
     <div>
-      <Link href={friend ? "/friends?tab=testing" : "/handshakes"} className="text-sm text-muted hover:text-ink">
+      <Link href={friend ? "/friends?tab=testing" : "/handshakes"} className="text-sm text-muted-foreground hover:text-ink">
         ← {friend ? "Friend testing" : "Handshakes"}
       </Link>
 
-      <div className="card mt-3 p-6">
+      <Card className="mt-3 block p-6">
         <div className="flex flex-wrap items-center gap-4">
           <AppSide label="You test" name={testingApp.name} logo={testingApp.logoUrl} owner={partner.name} />
           {myApp && (
             <>
-              <ArrowLeftRight className="text-muted" size={18} />
+              <ArrowLeftRight className="text-muted-foreground" size={18} />
               <AppSide label={`${first} tests`} name={myApp.name} logo={myApp.logoUrl} owner="You" />
             </>
           )}
           <div className="ml-auto flex items-center gap-2">
-            {friend && <Badge tone="warn">friend test</Badge>}
+            {friend && <Badge variant="warning">friend test</Badge>}
             <StatusBadge status={hs.status} />
           </div>
         </div>
-        <ol className={cx("mt-6 grid gap-2", friend ? "grid-cols-3" : "grid-cols-4")}>
+        <ol className={cn("mt-6 grid gap-2", friend ? "grid-cols-3" : "grid-cols-4")}>
           {timeline.map((t) => (
             <li key={t.label}>
-              <div className={cx("h-1 rounded-full", t.bad ? "bg-bad" : t.done ? "bg-ink" : "bg-black/[0.08]")} />
-              <p className={cx("mt-2 text-xs", t.done ? "font-medium text-ink" : "text-muted")}>{t.label}</p>
+              <div className={cn("h-1 rounded-full", t.bad ? "bg-bad" : t.done ? "bg-ink" : "bg-black/[0.08]")} />
+              <p className={cn("mt-2 text-xs", t.done ? "font-medium text-ink" : "text-muted-foreground")}>{t.label}</p>
             </li>
           ))}
         </ol>
-        {hs.endedReason && <p className="mt-4 text-sm text-muted">{hs.endedReason}</p>}
-      </div>
+        {hs.endedReason && <p className="mt-4 text-sm text-muted-foreground">{hs.endedReason}</p>}
+      </Card>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         {/* Your side */}
-        <section className="card p-5">
+        <Card className="block p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-semibold">Your side</h2>
             <StatusBadge status={mine.status} />
@@ -83,14 +98,14 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
               )}
               <ol className="space-y-3 text-sm text-ink-2">
                 <li>
-                  <b>1.</b> Open the test with your Play account <span className="text-muted">({user.playEmail})</span>:
+                  <b>1.</b> Open the test with your Play account <span className="text-muted-foreground">({user.playEmail})</span>:
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <a href={testingApp.joinAndroidLink} target="_blank" rel="noreferrer" className="btn btn-soft btn-sm">
+                    <Button variant="outline" size="sm" nativeButton={false} render={<a href={testingApp.joinAndroidLink} target="_blank" rel="noreferrer" />}>
                       <Smartphone size={13} /> Join on Android
-                    </a>
-                    <a href={testingApp.joinWebLink} target="_blank" rel="noreferrer" className="btn btn-soft btn-sm">
+                    </Button>
+                    <Button variant="outline" size="sm" nativeButton={false} render={<a href={testingApp.joinWebLink} target="_blank" rel="noreferrer" />}>
                       Join on web <ExternalLink size={12} />
-                    </a>
+                    </Button>
                   </div>
                 </li>
                 <li>
@@ -100,11 +115,7 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                   <b>3.</b> Screenshot the <i>“You&apos;re a tester”</i> page and upload it{hoursLeft != null ? ` — ${hoursLeft}h left` : ""}.
                 </li>
               </ol>
-              <ActionForm action={optinProofAction} className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="sideId" value={mine.id} />
-                <input name="proof" type="file" accept="image/png,image/jpeg,image/webp" required className="field flex-1 pt-2 text-xs file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1 file:text-white" />
-                <SubmitButton pendingText="Uploading…">Upload proof</SubmitButton>
-              </ActionForm>
+              <OptinProofForm sideId={mine.id} />
             </div>
           )}
 
@@ -123,9 +134,9 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                     <span className="font-medium">
                       Day {day} of {totalDays}
                     </span>
-                    <span className="text-muted">{mine.checkinCount} check-ins</span>
+                    <span className="text-muted-foreground">{mine.checkinCount} check-ins</span>
                   </div>
-                  <Progress value={day} max={totalDays} />
+                  <Progress value={percent(day, totalDays)} />
                 </div>
               )}
               <div className="grid grid-cols-8 gap-1.5">
@@ -138,7 +149,7 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                     <div
                       key={key}
                       title={key}
-                      className={cx(
+                      className={cn(
                         "grid aspect-square place-items-center rounded-lg text-[11px] font-medium",
                         isChecked
                           ? "bg-ink text-white"
@@ -158,29 +169,24 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                 (mine.lastCheckinDate === today ? (
                   <p className="mt-4 rounded-xl bg-ok-soft px-3 py-2 text-sm text-ok">✓ Checked in for today. See you tomorrow.</p>
                 ) : (
-                  <ActionForm action={checkInAction} className="mt-4 space-y-2">
-                    <input type="hidden" name="sideId" value={mine.id} />
-                    {friend && <p className="text-xs text-muted">Check-ins are optional for friends. They show {first} you&apos;re still testing.</p>}
-                    <input name="note" className="field" maxLength={200} placeholder="Optional note — what did you try today?" />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <input name="proof" type="file" accept="image/png,image/jpeg,image/webp" className="flex-1 text-xs text-muted file:mr-2 file:rounded-full file:border-0 file:bg-black/[0.06] file:px-3 file:py-1" />
-                      <SubmitButton pendingText="Saving…">I opened the app today</SubmitButton>
-                    </div>
-                  </ActionForm>
+                  <div className="mt-4 space-y-2">
+                    {friend && <p className="text-xs text-muted-foreground">Check-ins are optional for friends. They show {first} you&apos;re still testing.</p>}
+                    <CheckInForm sideId={mine.id} />
+                  </div>
                 ))}
             </>
           )}
-        </section>
+        </Card>
 
         {/* Partner side */}
         {friend ? (
-          <section className="card p-5">
+          <Card className="block p-5">
             <h2 className="mb-4 font-semibold">Testing for a friend</h2>
             <div className="flex items-center gap-3">
-              <Avatar name={partner.name} src={partner.avatarUrl} size={40} ring={false} />
+              <UserAvatar name={partner.name} src={partner.avatarUrl} size={40} ring={false} />
               <div className="text-sm">
                 <p className="font-medium">{partner.name}</p>
-                <p className="text-xs text-muted">Developer of {testingApp.name}</p>
+                <p className="text-xs text-muted-foreground">Developer of {testingApp.name}</p>
               </div>
             </div>
             <p className="mt-4 text-sm text-ink-2">
@@ -189,34 +195,34 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
             </p>
             {(hs.status === "accepted" || hs.status === "active") && (
               <ActionForm action={leaveFriendAction} className="mt-4">
-                <input type="hidden" name="handshakeId" value={hs.id} />
-                <SubmitButton className="btn btn-ghost btn-sm text-muted" pendingText="Leaving…">
+                <Input type="hidden" name="handshakeId" value={hs.id} />
+                <SubmitButton variant="ghost" size="sm" className="text-muted-foreground" pendingText="Leaving…">
                   Stop testing
                 </SubmitButton>
               </ActionForm>
             )}
-          </section>
+          </Card>
         ) : (
-          <section className="card p-5">
+          <Card className="block p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-semibold">{partner.name.split(" ")[0]}&apos;s side</h2>
               {theirs && <StatusBadge status={theirs.status} />}
             </div>
             <div className="flex items-center gap-3">
-              <Avatar name={partner.name} src={partner.avatarUrl} size={40} ring={false} />
+              <UserAvatar name={partner.name} src={partner.avatarUrl} size={40} ring={false} />
               <div className="text-sm">
                 <p className="font-medium">{partner.name}</p>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-muted-foreground">
                   Reliability {partner.reliabilityScore} · Level {partner.level}
                 </p>
               </div>
             </div>
             {theirs && (
               <dl className="mt-4 space-y-2 text-sm">
-                {myApp && <Row label="Testing" value={myApp.name} />}
-                <Row label="Check-ins" value={String(theirs.checkinCount)} />
-                <Row label="Checked in today" value={theirs.lastCheckinDate === today ? "Yes ✓" : "Not yet"} />
-                {theirs.missedStreak > 0 && <Row label="Missed in a row" value={String(theirs.missedStreak)} bad />}
+                {myApp && <DetailRow label="Testing" value={myApp.name} />}
+                <DetailRow label="Check-ins" value={String(theirs.checkinCount)} />
+                <DetailRow label="Checked in today" value={theirs.lastCheckinDate === today ? "Yes ✓" : "Not yet"} />
+                {theirs.missedStreak > 0 && <DetailRow label="Missed in a row" value={String(theirs.missedStreak)} bad />}
               </dl>
             )}
             {d.theirFeedback && (
@@ -226,91 +232,38 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                 {d.theirFeedback.comments && <p className="mt-1 text-ink-2">{d.theirFeedback.comments}</p>}
               </div>
             )}
-          </section>
+          </Card>
         )}
       </div>
 
       {mine.status !== "pending" && (
         <>
           <SectionTitle>Feedback for {testingApp.name}</SectionTitle>
-          <ActionForm action={feedbackAction} className="card space-y-4 p-5">
-            <input type="hidden" name="sideId" value={mine.id} />
-            <fieldset>
-              <legend className="label">Rating</legend>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <label key={n} className="cursor-pointer">
-                    <input type="radio" name="rating" value={n} defaultChecked={d.myFeedback?.rating === n} required className="peer sr-only" />
-                    <span className="grid h-10 w-12 place-items-center rounded-xl border border-line text-sm peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-coral">
-                      {n}★
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <div>
-              <label className="label" htmlFor="bugs">Bugs found</label>
-              <textarea id="bugs" name="bugs" rows={2} className="field" defaultValue={d.myFeedback?.bugs ?? ""} placeholder="Steps to reproduce, device, what happened…" />
-            </div>
-            <div>
-              <label className="label" htmlFor="comments">Comments</label>
-              <textarea id="comments" name="comments" rows={2} className="field" defaultValue={d.myFeedback?.comments ?? ""} placeholder="What you liked, what was confusing…" />
-            </div>
-            <SubmitButton pendingText="Sending…">{d.myFeedback ? "Update feedback" : "Send feedback"}</SubmitButton>
-          </ActionForm>
+          <FeedbackForm
+            sideId={mine.id}
+            initial={d.myFeedback ? { rating: d.myFeedback.rating, bugs: d.myFeedback.bugs, comments: d.myFeedback.comments } : null}
+          />
         </>
       )}
 
-      <details className="mt-8">
-        <summary className="cursor-pointer text-sm text-muted hover:text-ink">Report a problem with this handshake</summary>
-        {d.myDisputes.length > 0 && (
-          <ul className="mt-3 space-y-1 text-sm text-ink-2">
-            {d.myDisputes.map((x) => (
-              <li key={x.id}>
-                • {x.reason} — <b>{x.status}</b>
-                {x.resolution ? `: ${x.resolution}` : ""}
-              </li>
-            ))}
-          </ul>
-        )}
-        <ActionForm action={reportAction} className="card mt-3 space-y-3 p-4" resetOnSuccess>
-          <input type="hidden" name="handshakeId" value={hs.id} />
-          <textarea name="reason" rows={3} className="field" required minLength={10} placeholder="e.g. their opt-in screenshot is for a different app, or they asked me to uninstall early." />
-          <SubmitButton className="btn btn-soft btn-sm">Send to admins</SubmitButton>
-        </ActionForm>
-      </details>
+      <Collapsible className="mt-8">
+        <CollapsibleTrigger render={<Button variant="link" className="text-sm text-muted-foreground hover:text-ink" />}>
+          Report a problem with this handshake
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {d.myDisputes.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm text-ink-2">
+              {d.myDisputes.map((x) => (
+                <li key={x.id}>
+                  • {x.reason} — <b>{x.status}</b>
+                  {x.resolution ? `: ${x.resolution}` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ReportProblemForm handshakeId={hs.id} />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
-  );
-}
-
-function AppSide({ label, name, logo, owner }: { label: string; name: string; logo: string | null; owner: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <AppLogo name={name} src={logo} size={48} />
-      <div>
-        <p className="text-[10.5px] uppercase tracking-wide text-muted">{label}</p>
-        <p className="font-semibold">{name}</p>
-        <p className="text-xs text-muted">by {owner}</p>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value, bad }: { label: string; value: string; bad?: boolean }) {
-  return (
-    <div className="flex justify-between">
-      <dt className="text-muted">{label}</dt>
-      <dd className={cx("font-medium", bad && "text-bad")}>{value}</dd>
-    </div>
-  );
-}
-
-function Stars({ n }: { n: number }) {
-  return (
-    <span className="flex">
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star key={i} size={13} className={i < n ? "fill-[#f5b301] text-[#f5b301]" : "text-black/15"} />
-      ))}
-    </span>
   );
 }

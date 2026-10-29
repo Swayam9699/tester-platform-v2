@@ -19,6 +19,12 @@ export function databaseUrl(): string | undefined {
   return url.toString();
 }
 
+/** Digits in Supabase's email sign-in code. Must match Authentication → Email → "Email OTP Length" in Supabase. */
+export const EMAIL_CODE_LENGTH = 6;
+
+/** Demo mode sign-in: an unsigned user id, only honoured against the local demo database (see getSessionUser). */
+export const DEMO_COOKIE = "demo_uid";
+
 /** Demo mode: local database, pick-a-user sign-in, and an adjustable clock for walking through 16-day cycles. */
 export const demoMode = !databaseUrl() && !supabaseEnabled;
 
