@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-ink: #0f1115;
+  --color-ink-2: #3a3e46;
+  --color-muted: #7b8089;
+  --color-faint: #a7abb2;
+  --color-line: #e8e8eb;
+  --color-canvas: #f5f5f6;
+  --color-peach: #f6a47e;
+  --color-coral: #ef7b5b;
+  --color-lilac: #c9b9ea;
+  --color-ok: #23935f;
+  --color-ok-soft: #e4f5ec;
+  --color-warn: #c47a0e;
+  --color-warn-soft: #fdf1dc;
+  --color-bad: #cf4339;
+  --color-bad-soft: #fde7e5;
+  --color-info: #4f5bd5;
+  --color-info-soft: #eceefd;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--color-ink);
+  background-color: #cfd0d3;
+  background-image:
+    radial-gradient(55% 45% at 100% 100%, rgba(240, 120, 86, 0.95) 0%, rgba(244, 146, 110, 0.55) 40%, transparent 75%),
+    radial-gradient(45% 35% at 60% 105%, rgba(247, 180, 150, 0.8) 0%, transparent 70%),
+    linear-gradient(180deg, #c3c6cb 0%, #d3d3d5 55%, #e3d7d1 100%);
+  background-attachment: fixed;
+}
+
+@layer components {
+  /* The frosted app window from the mockup. */
+  .glass-shell {
+    background: rgba(246, 246, 247, 0.84);
+    backdrop-filter: blur(28px) saturate(1.2);
+    -webkit-backdrop-filter: blur(28px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow:
+      0 40px 90px -30px rgba(40, 30, 30, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid rgba(15, 17, 21, 0.04);
+    box-shadow: 0 1px 2px rgba(15, 17, 21, 0.04), 0 8px 24px -12px rgba(15, 17, 21, 0.08);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 2.5rem;
+    padding: 0 1.1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+    cursor: pointer;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-dark {
+    color: #fff;
+    background: linear-gradient(180deg, #2b2e35 0%, #0c0d10 100%);
+    box-shadow:
+      0 6px 16px -6px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .btn-dark:hover:not(:disabled) {
+    background: linear-gradient(180deg, #363a42 0%, #15171b 100%);
+  }
+  .btn-soft {
+    color: var(--color-ink-2);
+    background: #fff;
+    border: 1px solid var(--color-line);
+  }
+  .btn-soft:hover:not(:disabled) {
+    background: #fafafa;
+    color: var(--color-ink);
+  }
+  .btn-ghost {
+    color: var(--color-ink-2);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(15, 17, 21, 0.05);
+  }
+  .btn-danger {
+    color: var(--color-bad);
+    background: var(--color-bad-soft);
+  }
+  .btn-sm {
+    height: 2rem;
+    padding: 0 0.8rem;
+    font-size: 0.8125rem;
+  }
+
+  .field {
+    width: 100%;
+    height: 2.75rem;
+    padding: 0 0.95rem;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea.field {
+    height: auto;
+    padding: 0.7rem 0.95rem;
+    resize: vertical;
+  }
+  .field:focus {
+    border-color: #c9cbd0;
+    box-shadow: 0 0 0 4px rgba(15, 17, 21, 0.05);
+  }
+  .field::placeholder {
+    color: var(--color-faint);
+  }
+  .label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-2);
+  }
+
+  .check {
+    appearance: none;
+    flex-shrink: 0;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 5px;
+    border: 1.5px solid #c9cbd0;
+    background: #fff;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .check::after {
+    content: "";
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+  }
+  .check:checked {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+  .check:checked::after {
+    opacity: 1;
+  }
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 17, 21, 0.15) transparent;
+}
+
+@keyframes sparkle-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(4deg);
+  }
+}
+.sparkle-float {
+  animation: sparkle-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sparkle-float {
+    animation: none;
+  }
+}

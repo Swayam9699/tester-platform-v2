@@ -1,0 +1,122 @@
+This is a clear model to build from. The core unit is a 1:1 handshake between two apps: I test your app, you test mine. Here is how I’d structure your platform around that.
+
+1. Key rules
+One shared Google Group. Every member joins it once, and every developer adds its address to their closed testing track. Consumer Google Groups can’t add members through an API, so set the group to “anyone can join” (or “ask to join” plus your approval) and show the join link during onboarding.
+Fixed campaign. Each campaign has 16 tester slots and runs 16 days. Google needs 12 testers opted in for 14 continuous days, so this gives 4 spare testers and 2 spare days.
+Handshake. You request to test someone’s app and offer one of your own apps in return. Once they accept, both of you join each other’s test.
+Slots by level. Your level caps how many handshakes you can have active at once (12 to 20). Completing handshakes raises your level.
+Penalty. If you skip your half of a handshake, you’re blocked from new handshakes for a while.
+Matching filter. You only see apps whose minimum Android version is at or below your device’s version.
+2. Database structure
+users
+  id, google_email (must match Play account), name
+  device_android_api        -- e.g. 26 = Android 8.0
+  level, completed_handshakes, failed_handshakes
+  reliability_score, blocked_until
+  joined_google_group (bool), created_at
+
+apps
+  id, owner_id, name, package_name
+  join_android_link, join_web_link, logo_url
+  min_android_api
+  group_added_confirmed (bool), countries_all_confirmed (bool)
+  tester_slots (16), duration_days (16)
+  status: draft | in_review | open | full | completed | archived
+  created_at
+
+handshakes
+  id
+  user_a_id, app_a_id      -- requester and the app they offer
+  user_b_id, app_b_id      -- target owner and their app
+  status: requested | accepted | rejected | active | completed | broken | cancelled
+  requested_at, accepted_at, started_at, ends_at
+
+handshake_sides            -- 2 rows per handshake, one per direction
+  id, handshake_id
+  tester_id, app_id        -- who is testing which app
+  joined_at, optin_proof_url
+  last_checkin_date, checkin_count, missed_streak
+  status: pending | joined | active | completed | skipped
+
+daily_checkins
+  side_id, date, proof_url (optional), note
+
+feedback
+  side_id, rating, bugs, comments, created_at
+
+levels
+  level, active_slots, completions_required
+
+blocks
+  user_id, reason, handshake_id, starts_at, ends_at
+
+Splitting each handshake into two sides is the important design choice. A can do their part perfectly while B skips. With sides, you penalize only B and can still reward A.
+
+3. Level system (example values)
+Level	Active slots	Completed handshakes needed
+1	12	0
+2	14	10
+3	16	25
+4	18	50
+5	20	100
+
+Before creating or accepting a request, check that the user’s active handshakes are below their level’s slot limit.
+
+4. Matching logic
+
+Discover feed for user U shows apps where:
+
+the owner is not U
+the app’s status is “open” (fewer than 16 accepted handshakes)
+the app’s minimum Android version is at or below U’s device version
+U has no existing handshake with this app
+the owner is not blocked
+
+Sort by owner reliability, then fewest testers so far, so new apps fill up quickly.
+
+Sending a request: U picks one of their own apps to offer. That app must be open, must not have been tested by the target owner before, and its minimum Android version must be at or below the target owner’s device version.
+
+Accepting: check both users’ free slots and both apps’ free tester slots in a single database transaction, so two people can’t take the last slot at the same time.
+
+5. Handshake lifecycle
+Requested. The target owner gets a notification and can accept or reject. Auto-expire the request after 48 hours.
+Accepted. Both sides get the other app’s join link. Each must opt in and upload a screenshot of the “You’re a tester” page within, say, 48 hours.
+Active. Once both sides have joined, the 16-day clock starts. Each side checks in daily (“opened today”).
+Daily cron job:
+Increase missed_streak for anyone who didn’t check in yesterday.
+At 2 missed days, send a warning.
+At 3 or more, mark that side as skipped, mark the handshake as broken, block the skipper (e.g. 7 days, longer for repeat offenders), and lower their reliability score.
+The innocent side keeps their completion credit, and their app gets priority in the discover feed to find a replacement tester.
+Completed. Both sides reach day 16 with no skip. Increase each user’s completed count, recheck their level, and let them uninstall.
+6. Onboarding and app submission flow
+
+Mirror the 4 steps you showed, as a checklist that blocks submission until done:
+
+Join our Google Group (button opens the join link). The user ticks a confirmation box.
+Prepare in Play Console. The user confirms they added the group email to the closed track’s testers, selected all countries, and sent the release for review.
+App details:
+Paste the testing link. Validate it with a regex and extract the package name. The “Join on web” link looks like play.google.com/apps/testing/<package>; the Android link uses ?id=<package>.
+Paste the logo URL. Show a live preview so mistakes are obvious.
+Choose the minimum Android version from a dropdown and store it as an API level.
+Publish. The app’s status becomes “open” and it appears in the discover feed.
+
+Also ask testers for their device’s Android version at signup (dropdown), since matching depends on it.
+
+7. Screens
+Landing and login (Google Sign-In only)
+Onboarding (join group, device Android version)
+Dashboard: level, slots used out of total, today’s check-ins due, alerts
+My Apps: each app shows a 16-slot progress bar (joined, active, completed)
+Discover: cards for open apps with a “Request handshake” button
+Requests: incoming and outgoing, with accept/reject
+Active Handshakes: one row per app you’re testing, with a daily check-in button, days left and feedback
+Profile: level progress, reliability score, block status
+Admin: disputes, bans, proof review
+8. Suggested stack
+Next.js for the frontend
+Supabase for auth (Google), Postgres, screenshot storage, and edge functions or cron for the daily job
+FCM or email for reminders
+
+This lets one person ship an MVP quickly.
+
+If you’d like, I can write the actual SQL schema with constraints, or build a clickable prototype of the dashboard and handshake flow.

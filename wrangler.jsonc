@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tester-platform",
+  // worker.ts wraps the Next.js app (.open-next/worker.js) and adds the daily cron job.
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // The daily job: expirations, missed check-ins, completions. 00:05 UTC.
+  "triggers": { "crons": ["5 0 * * *"] },
+  "observability": { "enabled": true }
+}
