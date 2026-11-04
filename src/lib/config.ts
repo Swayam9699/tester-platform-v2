@@ -23,8 +23,8 @@ export function databaseUrl(): string | undefined {
 export const demoMode = !databaseUrl() && !supabaseEnabled;
 
 export const googleGroup = {
-  url: process.env.NEXT_PUBLIC_GOOGLE_GROUP_URL || "https://groups.google.com/g/tester-community",
-  email: process.env.NEXT_PUBLIC_GOOGLE_GROUP_EMAIL || "tester-community@googlegroups.com",
+  url: process.env.NEXT_PUBLIC_GOOGLE_GROUP_URL || "https://groups.google.com/g/gametester685",
+  email: process.env.NEXT_PUBLIC_GOOGLE_GROUP_EMAIL || "gametester685@googlegroups.com",
 };
 
 export const adminEmails = (process.env.ADMIN_EMAILS ?? "")
