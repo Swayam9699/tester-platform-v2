@@ -3,6 +3,7 @@ import Link from "next/link";
 import { joinFriendAction } from "@/app/actions";
 import { getDb } from "@/db";
 import { ActionForm, SubmitButton } from "@/components/ActionForm";
+import { DeviceVersionPicker } from "@/components/DeviceVersionPicker";
 import { AppLogo, Avatar, LogoMark, SlotBar } from "@/components/ui";
 import { androidLabel } from "@/lib/android";
 import { APP_NAME, RULES } from "@/lib/config";
@@ -65,15 +66,26 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       </Link>
     );
   } else if (tooOld) {
-    action = <Note>Your phone runs an older Android version than {app.name} needs ({androidLabel(app.minAndroidApi)}+).</Note>;
+    action = (
+      <div className="space-y-3">
+        <Note>
+          {app.name} needs {androidLabel(app.minAndroidApi)} or newer, and your profile says your phone runs {androidLabel(user.deviceAndroidApi)}.
+          Picked the wrong version when you signed up? Change it here.
+        </Note>
+        <DeviceVersionPicker api={user.deviceAndroidApi} defaultOpen />
+      </div>
+    );
   } else {
     action = (
-      <ActionForm action={joinFriendAction}>
-        <input type="hidden" name="code" value={code} />
-        <SubmitButton className="btn btn-dark h-12 w-full" pendingText="Joining…">
-          <Heart size={16} /> Test {app.name} for {first}
-        </SubmitButton>
-      </ActionForm>
+      <div className="space-y-3">
+        <DeviceVersionPicker api={user!.deviceAndroidApi} />
+        <ActionForm action={joinFriendAction}>
+          <input type="hidden" name="code" value={code} />
+          <SubmitButton className="btn btn-dark h-12 w-full" pendingText="Joining…">
+            <Heart size={16} /> Test {app.name} for {first}
+          </SubmitButton>
+        </ActionForm>
+      </div>
     );
   }
 

@@ -20,7 +20,7 @@ import {
 } from "@/server/handshakes";
 import { isOnboarded } from "@/server/auth";
 import { listMySides } from "@/server/queries";
-import { completeOnboarding, upsertUserByEmail } from "@/server/users";
+import { completeOnboarding, updateDeviceVersion, upsertUserByEmail } from "@/server/users";
 
 let db: Db;
 let seq = 0;
@@ -328,4 +328,15 @@ describe("sign-in and the Google Play email", () => {
     assert.equal(row.googleEmail, viaEmail.googleEmail, "the sign-in email is unchanged");
     assert.ok(isOnboarded(row));
   });
+});
+
+test("a wrong Android version from sign-up can be corrected, and only to a real version", async () => {
+  const u = await makeUser(21); // picked Android 5.0 by mistake
+  const owner = await makeUser();
+  const app = await makeApp(owner.id, 28);
+  const [row] = await db.select().from(apps).where(eq(apps.id, app));
+  await assert.rejects(joinAsFriend(db, u.id, row.inviteCode), /Android version/);
+  await assert.rejects(updateDeviceVersion(db, u.id, 99), /Android version/);
+  await updateDeviceVersion(db, u.id, 34);
+  await joinAsFriend(db, u.id, row.inviteCode);
 });

@@ -13,7 +13,7 @@ import { AppError } from "@/server/core";
 import { runDailyJob } from "@/server/cron";
 import * as hs from "@/server/handshakes";
 import { saveScreenshot } from "@/server/storage";
-import { completeOnboarding, markNotificationsRead, updateProfile, upsertUserByEmail } from "@/server/users";
+import { completeOnboarding, markNotificationsRead, updateDeviceVersion, updateProfile, upsertUserByEmail } from "@/server/users";
 
 export type ActionState = { ok: boolean; message?: string } | null;
 
@@ -138,6 +138,11 @@ export async function profileAction(_: ActionState, fd: FormData): Promise<Actio
     (uid) => updateProfile(db, uid, { name: str(fd, "name"), deviceAndroidApi: num(fd, "deviceAndroidApi"), playEmail: str(fd, "playEmail") }),
     "Profile saved.",
   );
+}
+
+export async function deviceVersionAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const db = await getDb();
+  return run((uid) => updateDeviceVersion(db, uid, num(fd, "deviceAndroidApi")), "Android version updated.");
 }
 
 export async function readNotificationsAction(): Promise<ActionState> {

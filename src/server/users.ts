@@ -63,6 +63,12 @@ export async function updateProfile(db: Db, userId: string, input: { name: strin
     .where(eq(users.id, userId));
 }
 
+/** Fix a wrong pick from onboarding: the device's Android version decides which apps you can test. */
+export async function updateDeviceVersion(db: Db, userId: string, deviceAndroidApi: number) {
+  if (!isValidApi(deviceAndroidApi)) fail("Choose your device's Android version.");
+  await db.update(users).set({ deviceAndroidApi }).where(eq(users.id, userId));
+}
+
 export async function markNotificationsRead(db: Db, userId: string) {
   await db
     .update(notifications)

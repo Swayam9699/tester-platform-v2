@@ -1,6 +1,7 @@
 import { Search, ShieldCheck, Smartphone, Zap } from "lucide-react";
 import { getDb } from "@/db";
 import { RequestDialog } from "@/components/RequestDialog";
+import { DeviceVersionPicker } from "@/components/DeviceVersionPicker";
 import { AppLogo, Avatar, Badge, EmptyState, PageHeader, SlotBar } from "@/components/ui";
 import { androidLabel } from "@/lib/android";
 import { requireOnboardedUser } from "@/server/auth";
@@ -26,10 +27,12 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
         title="Discover"
         subtitle={
           <>
-            Apps that run on your {androidLabel(user.deviceAndroidApi)} device and still need testers. {d.used}/{d.limit} handshake slots in use.
+            Apps that run on your {androidLabel(user.deviceAndroidApi)} phone and still need testers. {d.used}/{d.limit} handshake slots in use.
           </>
         }
       />
+      {/* Only apps your phone can run are listed, so a wrong pick at sign-up hides apps: fix it here. */}
+      <DeviceVersionPicker api={user.deviceAndroidApi} className="-mt-3 mb-5" />
 
       <form className="mb-6 flex gap-2">
         <label className="flex h-11 flex-1 items-center gap-2 rounded-full border border-line bg-white px-4 text-sm focus-within:border-[#c9cbd0]">
