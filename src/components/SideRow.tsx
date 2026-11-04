@@ -49,7 +49,7 @@ export function SideRow({ s }: { s: MySide }) {
           )
         ) : s.sideStatus === "pending" ? (
           <Link href={`/handshakes/${s.handshakeId}`} className="btn btn-dark btn-sm">
-            Upload proof
+            {s.kind === "friend" ? "Confirm join" : "Upload proof"}
           </Link>
         ) : (
           <Link href={`/handshakes/${s.handshakeId}`} className="btn btn-soft btn-sm">

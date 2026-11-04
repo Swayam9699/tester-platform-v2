@@ -135,7 +135,7 @@ function Alerts({ d, blockedUntil }: { d: Awaited<ReturnType<typeof getDashboard
       tone: "bg-warn-soft text-warn",
       text: (
         <>
-          Opt in to <b>{s.app.name}</b> and upload your screenshot
+          Opt in to <b>{s.app.name}</b> and {s.kind === "friend" ? "confirm you joined" : "upload your screenshot"}
           {s.deadlineAt ? ` — ${Math.max(0, Math.round((s.deadlineAt.getTime() - d.now.getTime()) / 3_600_000))}h left` : ""}
         </>
       ),

@@ -229,7 +229,6 @@ export async function seedDemoData(db: Db) {
       appId: aid.budget,
       status: "active",
       joinedAt: startedAt,
-      optinProofUrl: "/demo-proof.svg",
       lastCheckinDate: dayKey(addDays(now, -1)),
       checkinCount: 3,
     });

@@ -78,7 +78,7 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
 
           {mine.status === "pending" && hs.status === "accepted" && (
             <div className="space-y-4">
-              {mine.proofRejected && (
+              {mine.proofRejected && !friend && (
                 <p className="rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">An admin rejected your last screenshot. Please upload a clear one.</p>
               )}
               <ol className="space-y-3 text-sm text-ink-2">
@@ -97,14 +97,27 @@ export default async function HandshakePage({ params }: { params: Promise<{ id: 
                   <b>2.</b> Tap <i>Become a tester</i>, then install the app.
                 </li>
                 <li>
-                  <b>3.</b> Screenshot the <i>“You&apos;re a tester”</i> page and upload it{hoursLeft != null ? ` — ${hoursLeft}h left` : ""}.
+                  <b>3.</b>{" "}
+                  {friend ? (
+                    <>When you see <i>“You&apos;re a tester”</i>, tap the button below</>
+                  ) : (
+                    <>Screenshot the <i>“You&apos;re a tester”</i> page and upload it</>
+                  )}
+                  {hoursLeft != null ? ` — ${hoursLeft}h left` : ""}.
                 </li>
               </ol>
-              <ActionForm action={optinProofAction} className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="sideId" value={mine.id} />
-                <input name="proof" type="file" accept="image/png,image/jpeg,image/webp" required className="field flex-1 pt-2 text-xs file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1 file:text-white" />
-                <SubmitButton pendingText="Uploading…">Upload proof</SubmitButton>
-              </ActionForm>
+              {friend ? (
+                <ActionForm action={optinProofAction}>
+                  <input type="hidden" name="sideId" value={mine.id} />
+                  <SubmitButton pendingText="Starting…">I&apos;ve joined the test</SubmitButton>
+                </ActionForm>
+              ) : (
+                <ActionForm action={optinProofAction} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="sideId" value={mine.id} />
+                  <input name="proof" type="file" accept="image/png,image/jpeg,image/webp" required className="field flex-1 pt-2 text-xs file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1 file:text-white" />
+                  <SubmitButton pendingText="Uploading…">Upload proof</SubmitButton>
+                </ActionForm>
+              )}
             </div>
           )}
 

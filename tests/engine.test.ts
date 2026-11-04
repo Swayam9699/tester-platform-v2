@@ -100,6 +100,11 @@ describe("handshake rules", () => {
     assert.equal(mine.checkedToday, false);
   });
 
+  test("swap testers must upload the opt-in screenshot", async () => {
+    const { a, sideA } = await pair();
+    await assert.rejects(submitOptinProof(db, a.id, sideA.id, null), /screenshot/);
+  });
+
   test("duplicate request for the same app is refused", async () => {
     const { a, appA, appB } = await pair();
     await assert.rejects(requestHandshake(db, a.id, { targetAppId: appB, offeredAppId: appA }), /already/);
@@ -237,7 +242,7 @@ describe("friend tests", () => {
     return side;
   }
 
-  test("a friend joins by link: one side, a tester slot, no handshake slots, clock starts on their proof", async () => {
+  test("a friend joins by link: one side, a tester slot, no handshake slots, clock starts when they confirm", async () => {
     const { owner, app } = await invite();
     const friend = await makeUser();
     const hs = await joinAsFriend(db, friend.id, app.inviteCode);
@@ -248,7 +253,8 @@ describe("friend tests", () => {
     assert.equal(await activeHandshakeCount(db, friend.id), 0);
     assert.equal(await activeHandshakeCount(db, owner.id), 0);
 
-    await submitOptinProof(db, friend.id, (await friendSide(hs.id)).id, "/f.png");
+    // Friends confirm with a tap: no screenshot.
+    await submitOptinProof(db, friend.id, (await friendSide(hs.id)).id, null);
     const [row] = await db.select().from(handshakes).where(eq(handshakes.id, hs.id));
     assert.equal(row.status, "active");
   });

@@ -178,14 +178,18 @@ async function getMySide(tx: DbOrTx, userId: string, sideId: string) {
   return row;
 }
 
-/** Tester uploaded the "You're a tester" screenshot. Starts the 16-day clock once both sides have. */
-export async function submitOptinProof(db: Db, userId: string, sideId: string, proofUrl: string) {
+/**
+ * Tester opted in on Google Play. Swap testers prove it with the "You're a tester" screenshot; friends who
+ * joined by invite link just confirm. Starts the 16-day clock once every side has opted in.
+ */
+export async function submitOptinProof(db: Db, userId: string, sideId: string, proofUrl: string | null) {
   return db.transaction(async (tx) => {
     const now = await getNow(tx);
     const { side, hs } = await getMySide(tx, userId, sideId);
     if (hs.status !== "accepted") fail("Opt-in proof isn't needed for this handshake.");
     if (hs.deadlineAt && hs.deadlineAt < now) fail("The opt-in deadline has passed.");
-    if (side.status !== "pending") fail("You've already submitted your opt-in proof.");
+    if (side.status !== "pending") fail("You've already opted in.");
+    if (!proofUrl && hs.kind !== "friend") fail("Upload a screenshot of the \"You're a tester\" page.");
 
     await tx
       .update(handshakeSides)

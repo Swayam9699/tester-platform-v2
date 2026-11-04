@@ -59,7 +59,9 @@ function PanelItem({ side: s, me }: { side: MySide; me: Me }) {
   const subtitle = pending
     ? s.proofRejected
       ? "Proof rejected — upload again"
-      : "Opt in & upload your proof"
+      : s.kind === "friend"
+        ? "Opt in, then confirm you joined"
+        : "Opt in & upload your proof"
     : waiting
       ? `Waiting for ${s.partner.name.split(" ")[0]} to opt in`
       : s.missedStreak > 0
@@ -83,7 +85,7 @@ function PanelItem({ side: s, me }: { side: MySide; me: Me }) {
             </ActionForm>
           )
         ) : pending ? (
-          <Link href={`/handshakes/${s.handshakeId}`} className="grid h-[1.05rem] w-[1.05rem] place-items-center rounded-[5px] bg-peach text-white" title="Upload proof">
+          <Link href={`/handshakes/${s.handshakeId}`} className="grid h-[1.05rem] w-[1.05rem] place-items-center rounded-[5px] bg-peach text-white" title={s.kind === "friend" ? "Confirm you joined" : "Upload proof"}>
             <Upload size={10} strokeWidth={3} />
           </Link>
         ) : (

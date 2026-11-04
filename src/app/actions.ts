@@ -215,10 +215,16 @@ export async function respondAction(_: ActionState, fd: FormData): Promise<Actio
 
 export async function optinProofAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const db = await getDb();
-  return run(async (uid) => {
-    const url = await saveScreenshot(fd.get("proof") as File | null, "optin");
-    await hs.submitOptinProof(db, uid, str(fd, "sideId"), url);
-  }, "Proof uploaded. Your 16 days start as soon as your partner opts in too.");
+  // Swaps send the screenshot; friend tests are confirmed with a tap (submitOptinProof enforces which).
+  const file = fd.get("proof") as File | null;
+  const hasProof = Boolean(file && file.size > 0);
+  return run(
+    async (uid) => {
+      const url = hasProof ? await saveScreenshot(file, "optin") : null;
+      await hs.submitOptinProof(db, uid, str(fd, "sideId"), url);
+    },
+    hasProof ? "Proof uploaded. Your 16 days start as soon as your partner opts in too." : "You're in! Your 16 days have started.",
+  );
 }
 
 export async function checkInAction(_: ActionState, fd: FormData): Promise<ActionState> {
